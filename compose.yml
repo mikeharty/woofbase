@@ -1,0 +1,55 @@
+services:
+  web:
+    image: node:alpine
+    ports:
+      - "5173:5173"
+    working_dir: /app/frontend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - pupnet
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/dogedb
+    networks:
+      - pupnet
+    volumes:
+      - ./backend:/app/backend
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=dogedb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d dogedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pupnet
+
+volumes:
+  postgres_data:
+
+networks:
+  pupnet:
+    driver: bridge
