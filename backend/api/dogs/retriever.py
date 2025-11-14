@@ -15,16 +15,16 @@ class DogRetriever:
             client = OliveClient()
             olive_dogs = await client.fetch_all(endpoint="dogs")
             olive_dog_breeds = {dog["breed"] for dog in olive_dogs}
-            Log.debug(f"Fetched {len(olive_dogs)} dogs from Olive API")
+            Log.info(f"Fetched {len(olive_dogs)} dogs from Olive API")
             Log.debug(f"Olive dog breeds: {olive_dog_breeds}")
             local_dogs = dog_service.get_all()
             local_dog_breeds = {dog.breed for dog in local_dogs}
-            Log.debug(f"Fetched {len(local_dogs)} local dogs from database")
+            Log.info(f"Fetched {len(local_dogs)} local dogs from database")
             Log.debug(f"Local dog breeds: {local_dog_breeds}")
             for olive_dog in olive_dogs:
                 if olive_dog["breed"] not in local_dog_breeds:
-                    Log.info(f"Adding new dog to database: {olive_dog['breed']}")
                     dog_service.add(olive_dog)
+                    Log.info(f"Added new dog to local database: {olive_dog['breed']}")
 
                 elif olive_dog["breed"] in local_dog_breeds:
                     local_dog = dog_service.find(olive_dog["breed"])
@@ -32,15 +32,18 @@ class DogRetriever:
                         if olive_dog.get("image") and local_dog.image != olive_dog.get(
                             "image"
                         ):
-                            Log.info(
-                                f"Updating dog '{local_dog.breed}' in database with new image: {olive_dog.get('image')}"
-                            )
                             dog_service.update(local_dog, olive_dog)
+                            Log.info(
+                                f"Updated dog '{local_dog.breed}' in database with new image: {olive_dog.get('image')}"
+                            )
 
             for local_dog in local_dogs:
-                if local_dog.breed not in olive_dog_breeds:
-                    Log.info(f"Removing dog from database: {local_dog.breed}")
+                if (
+                    local_dog.breed not in olive_dog_breeds
+                    and not local_dog.breed.startswith("#")  # type: ignore
+                ):
                     dog_service.remove(local_dog)
+                    Log.info(f"Removed dog from local database: {local_dog.breed}")
 
             Log.info("Dog synchronization completed successfully")
         except Exception as error:

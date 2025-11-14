@@ -5,11 +5,13 @@ interface Dog {
     id?: number;
     breed: string;
     image?: string;
+    video?: string;
 }
 
 interface DogPageData {
     dogs: Dog[];
     page: number;
+    cached: boolean;
     total_dogs: number;
     total_pages: number;
 }
@@ -23,10 +25,20 @@ function App() {
         return isNaN(page) || page < 1 ? 1 : page;
     };
 
+    const isChrome = () => {
+        return navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+    };
+
+    const isMobile = () => {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    };
+
     const [dogData, setDogData] = useState<DogPageData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(getInitialPage());
+    const [isChromeBrowser, setIsChromeBrowser] = useState(false);
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
 
     const fetchDogs = async (page: number) => {
         setLoading(true);
@@ -49,6 +61,8 @@ function App() {
 
     useEffect(() => {
         fetchDogs(currentPage);
+        setIsChromeBrowser(isChrome());
+        setIsMobileDevice(isMobile());
     }, [currentPage]);
 
     const handlePageChange = (page: number) => {
@@ -61,6 +75,75 @@ function App() {
             url.searchParams.set('page', page.toString());
         }
         window.history.replaceState({}, '', url.toString());
+    };
+
+    const handleUnmuteVideo = (videoElement: HTMLVideoElement) => {
+        videoElement.muted = false;
+        videoElement.volume = 0.65;
+    };
+
+    const renderVideo = (dog: Dog) => {
+        const showControls = !isChromeBrowser && !isMobileDevice;
+        const shouldMute = isChromeBrowser;
+        const showSpeakerIcon = isChromeBrowser && !isMobileDevice;
+        const showPlayIcon = isMobileDevice;
+
+        return (
+            <div className='video-container'>
+                <video
+                    className='dog-image'
+                    controls={showControls}
+                    autoPlay={!isMobileDevice}
+                    loop
+                    muted={shouldMute}
+                    playsInline
+                    poster={isMobileDevice ? dog.image : undefined} // Show image as poster on mobile
+                    onLoadedData={e => {
+                        if (shouldMute) {
+                            e.currentTarget.muted = true;
+                        }
+                    }}
+                    onTouchStart={e => {
+                        if (isMobileDevice) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
+                    <source src={dog.video} type='video/mp4' />
+                </video>
+                {showSpeakerIcon && (
+                    <button
+                        className='speaker-icon'
+                        onClick={e => {
+                            const video = e.currentTarget.previousElementSibling as HTMLVideoElement;
+                            handleUnmuteVideo(video);
+                            e.currentTarget.style.display = 'none';
+                        }}
+                        title='Click to enable sound'
+                    >
+                        🔊
+                    </button>
+                )}
+                {showPlayIcon && (
+                    <button
+                        className='play-icon'
+                        onClick={async e => {
+                            const video = e.currentTarget.previousElementSibling as HTMLVideoElement;
+                            try {
+                                e.currentTarget.style.display = 'none';
+                                await video.play();
+                            } catch (error) {
+                                e.currentTarget.style.display = 'block';
+                                console.error('Video play failed:', error);
+                            }
+                        }}
+                        title='Click to play video'
+                    >
+                        ▶
+                    </button>
+                )}
+            </div>
+        );
     };
 
     const renderPagination = () => {
@@ -97,7 +180,7 @@ function App() {
     return (
         <div className='app'>
             <header className='header'>
-                <h1>🐕 DogeDB - Discover Dog Breeds</h1>
+                <h1>🐕 WoofBase - Discover Dog Breeds</h1>
                 <p>Explore our collection of amazing dog breeds</p>
             </header>
 
@@ -128,7 +211,7 @@ function App() {
                         <div className='dogs-grid'>
                             {dogData.dogs.map((dog, index) => (
                                 <div key={dog.id || index} className='dog-card'>
-                                    {dog.image ? (
+                                    {dog.image && !dog.video ? (
                                         <img
                                             src={dog.image}
                                             alt={`${dog.breed} dog`}
@@ -137,6 +220,8 @@ function App() {
                                                 (e.target as HTMLImageElement).src = 'https://i.imgflip.com/40i6rq.jpg';
                                             }}
                                         />
+                                    ) : dog.video ? (
+                                        renderVideo(dog)
                                     ) : (
                                         <div className='no-image'></div>
                                     )}
@@ -153,7 +238,7 @@ function App() {
             </main>
 
             <footer className='footer'>
-                <p>Built with ❤️ and 💩 for dog lovers everywhere</p>
+                <p>Built with ❤️ and 💩 in Santa Monica</p>
             </footer>
         </div>
     );

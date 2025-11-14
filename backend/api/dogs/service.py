@@ -18,17 +18,32 @@ class DogService:
 
     def get_page(self, page: int = 1) -> DogPageResult:
         total_dogs = self.session.query(Dog).count()
-        dogs = self._get_dog_page_cache(page) or self._get_dog_page_db(page) or []
+        cached_page = self._get_dog_page_cache(page)
+        if cached_page:
+            dogs = cached_page
+        else:
+            dogs = self._get_dog_page_db(page)
+
+        if page == 1 and not cached_page and len(dogs) > 0:
+            dogs.insert(
+                0,
+                Dog(
+                    breed="#1 Doggo",
+                    video="https://woof.mikeharty.com/lowkey.mp4",
+                    image="https://woof.mikeharty.com/poster.png",
+                ),
+            )
+
         return DogPageResult(
             dogs=[DogSchema.model_validate(dog) for dog in dogs],
             page=page,
+            cached=bool(cached_page),
             total_dogs=total_dogs,
             total_pages=(total_dogs + DOG_PAGE_SIZE - 1) // DOG_PAGE_SIZE,
         )
 
     def get_all(self) -> list[Dog]:
-        dogs = self.session.query(Dog).all()
-        return dogs
+        return self.session.query(Dog).all()
 
     def add(self, dog_data: dict) -> Dog:
         new_dog = Dog.create_from_dict(dog_data)

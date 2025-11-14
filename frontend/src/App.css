@@ -216,7 +216,7 @@ body {
     height: 400px;
     display: block;
     object-fit: cover;
-    min-width: 380px;
+    min-width: 470px;
 }
 
 .no-image {
@@ -310,6 +310,80 @@ body {
     background: #667eea;
     color: white;
     border-color: #667eea;
+}
+
+/* Video container and speaker icon */
+.video-container {
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+.speaker-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(140, 140, 140, 0);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 130px;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 47px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.speaker-icon:hover {
+    background: rgba(11, 222, 255, 0.9);
+    border: 2px solid rgba(134, 221, 255, 0.5);
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.speaker-icon:active {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Play icon button for mobile */
+.play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    color: white;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.play-icon:hover {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: white;
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.play-icon:active {
+    transform: translate(-50%, -50%) scale(0.95);
 }
 
 /* Footer */

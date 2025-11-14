@@ -8,19 +8,22 @@ class Dog(Base):
     __tablename__ = "dogs"
     breed = Column(String, primary_key=True, index=True)
     image = Column(String, nullable=True)
+    video = Column(String, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<Dog(breed={self.breed}, image={self.image})>"
+        return f"<Dog(breed={self.breed}, image={self.image}, video={self.video})>"
 
     def to_dict(self) -> dict:
         return {
             "breed": self.breed,
             "image": self.image,
+            "video": self.video,
         }
 
     def from_dict(self, data: dict) -> None:
         self.breed = data.get("breed", self.breed)
         self.image = data.get("image", self.image)
+        self.video = data.get("video", self.video)
 
     @classmethod
     def create_from_dict(cls, data: dict) -> "Dog":
